@@ -40,6 +40,13 @@ function stationaryDetector(road,u,dtAggr){
     this.nLanes=this.road.nLanes;
     this.vehNearOld=(this.u<0.5*this.road.roadLen) 
 	? this.road.findLeaderAt(this.u) : this.road.findFollowerAt(this.u);
+
+    this.frameDensityHistory = [];
+    this.frameFlowHistory = [];
+    this.frameSpeedHistory = [];
+    this.vehsCountHistory = [];
+    this.vehsHistory = [];
+    this.timestamps = [];
 }
 
 
@@ -56,7 +63,6 @@ stationaryDetector.prototype.update=function(time,dt){
         this.vehCount++;
 	this.speedSum += vehNear.speed;
     }
-
 
     if(time>=this.iAggr*this.dtAggr+this.dtAggr){
       this.iAggr++;
@@ -75,6 +81,57 @@ stationaryDetector.prototype.update=function(time,dt){
 		    this.historySpeed[this.iAggr]);
       }
     }
+
+  if (time < 100) {
+    this.frameFlowHistory.push(
+      3600*this.historyFlow[this.iAggr]
+    );
+    this.frameSpeedHistory.push(
+      (this.historyFlow[this.iAggr]>0) 
+      ? Math.round(3.6*this.historySpeed[this.iAggr]) 
+      : 0
+    );
+    this.frameDensityHistory.push(
+      (this.historyFlow[this.iAggr]>0)
+      ? Math.round(1000*this.historyFlow[this.iAggr]/this.historySpeed[this.iAggr]) 
+      : 0
+    );
+    this.vehsCountHistory.push(this.vehCount);
+    let vehsu = this.road.veh.map(v => { 
+      return { u: v.u, id: v.id }
+    });
+    this.vehsHistory.push(vehsu);
+    this.timestamps.push(time);
+    console.log(`Data written at time ${time}`);
+  }
+
+}
+
+
+stationaryDetector.prototype.exportToJson=function() {
+  let jsonExport = {
+    ts: this.timestamps,
+    dtAggr: this.dtAggr,
+    u: this.u,
+    flows: this.frameFlowHistory,
+    speeds: this.frameSpeedHistory,
+    dens: this.frameDensityHistory,
+    vehiclesU: this.vehsHistory,
+    vehCount: this.vehsCountHistory
+  };
+  const filename = 'data.json';
+  const jsonStr = JSON.stringify(jsonExport);
+
+  let element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
 }
 
 

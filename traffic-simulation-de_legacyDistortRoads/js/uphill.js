@@ -407,6 +407,9 @@ function updateSim(){
 	}
     }
 
+  for (let i=0; i<mainroad.nveh; i++) {
+    console.log(mainroad.veh[i]);
+  }
 
    if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
