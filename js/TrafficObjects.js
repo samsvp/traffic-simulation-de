@@ -906,7 +906,7 @@ TrafficObjects.prototype.zoomBack=function(){
 	obj.xPix += pixelsPerCall*dx/dist;
 	obj.yPix += pixelsPerCall*dy/dist;
       }
-      if(true){
+      if(false){
         console.log("TrafficObjects.zoomBack: i=",i,
 		    " obj.xPix=",obj.xPix,
 		    " obj.xPix=",obj.xPix,

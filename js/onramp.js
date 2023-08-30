@@ -850,6 +850,47 @@ function main_loop() {
 }
  
 
+let lastSpdId = 151;
+// Add new speed limitors
+function addSpeedLimAt(u, value) {
+  let imgIdx = Math.round(value / 10);
+  if (imgIdx > 12) imgIdx = 12;
+  
+  lastSpdId++;
+  trafficObjs.trafficObj.push({
+    id:lastSpdId,
+    image: trafficObjs.imgSpeedlRepo[imgIdx],
+    inDepot: true,
+    isActive: true,
+    isDragged: false,
+    isPicked: false,
+    lane:-1,
+    len:25,
+    road: mainroad,
+    type:"speedLimit",
+    u:u,
+    value:value,
+    width:10,
+    xPix:264.48,
+    xPixDepot: 264.48,
+    xPixSign1: 42,
+    xPixSign2: 42,
+    yPix: 328,
+    yPixDepot: 328,
+    yPixSign1: 42,
+    yPixSign2:42
+  });
+  return lastSpdId;
+}
+
+function removeSpeedLimit(id){
+  for (let i=0; i<trafficObjs.trafficObj.length; i++){
+    if (trafficObjs.trafficObj[i].id === id){
+      trafficObjs.trafficObj[i].isActive = false;
+      break;
+    }
+  }
+}
  //############################################
 // start the simulation thread
 // THIS function does all the things; everything else 
