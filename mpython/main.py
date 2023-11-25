@@ -15,12 +15,16 @@ plt.plot(data['vehCount'])
 
 # %%
 plt.plot(data['flows'])
-plt.plot(data['speeds'])
-plt.plot(data['dens'])
+plt.title(f"Flow = 3600 * dN/dt (veh/h), dt={data['dtAggr']}")
+plt.show()
 
 # %%
 plt.plot(data['speeds'])
+plt.title(f"Speed = 3.6 * sum(v)/len(v) (km/h)")
+plt.show()
 plt.plot(data['dens'])
+plt.title("Density = flow / speed (veh/km)")
+plt.show()
 
 # %%
 plt.plot(data['ts'])

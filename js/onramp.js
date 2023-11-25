@@ -855,7 +855,10 @@ let lastSpdId = 151;
 function addSpeedLimAt(u, value) {
   let imgIdx = Math.round(value / 10);
   if (imgIdx > 12) imgIdx = 12;
-  
+ 
+  if (value === 0) {
+    return addTrafficLight(u);
+  }
   lastSpdId++;
   trafficObjs.trafficObj.push({
     id:lastSpdId,
@@ -883,7 +886,26 @@ function addSpeedLimAt(u, value) {
   return lastSpdId;
 }
 
+
+function addTrafficLight(u) {
+  let id = 101;
+  for (let i=0; i<trafficObjs.trafficObj.length; i++){
+    if (trafficObjs.trafficObj[i].id === id){
+      trafficObjs.trafficObj[i].isActive = true;
+      trafficObjs.trafficObj[i].u = u;
+      trafficObjs.trafficObj[i].road = mainroad;
+      trafficObjs.trafficObj[i].lane = 0;
+      trafficObjs.trafficObj[i].inDepot = false;
+      mainroad.addTrafficLight(trafficObjs.trafficObj[i]);
+    }
+  }
+  return id;
+}
+
 function removeSpeedLimit(id){
+  if (id == 101) {
+    mainroad.removeTrafficLight(id);
+  }
   for (let i=0; i<trafficObjs.trafficObj.length; i++){
     if (trafficObjs.trafficObj[i].id === id){
       trafficObjs.trafficObj[i].isActive = false;
@@ -908,3 +930,63 @@ showInfo();//!!!! change to showInfoString() plus strings defined inline or as e
 
 var myRun=setInterval(main_loop, 1000/fps);
 
+
+function getDetectorSpeed(d) {
+  let hs = d.historySpeed;
+  return hs[hs.length - 1] * 3.6;
+}
+
+
+async function simmulateJam() {
+  let tu = 600;
+  let d2_speed = getDetectorSpeed(detectors[2]);
+
+  // add red traffic light
+  addSpeedLimAt(tu, 0);
+  await new Promise(r =>  setTimeout(r, 1200));
+  // remove traffic light
+  removeSpeedLimit(101);
+  let id40 = addSpeedLimAt(20, 40);
+  //let id30 = addSpeedLimAt(100, 30);
+  //let id2 = addSpeedLimAt(tu, 120);
+  let id41 = addSpeedLimAt(150, 40);
+  await new Promise(r =>  setTimeout(r, 5000));
+  await new Promise(r =>  setTimeout(r, 5000));
+  let id60 = addSpeedLimAt(tu, 120);
+  //removeSpeedLimit(id41);
+  //removeSpeedLimit(id40);
+}
+
+
+function lerp(a, b, step=1) {
+  return a + step * Math.sign(b - a);
+}
+
+
+async function simmulateJam2() {
+  let tu = 600;
+
+  // add red traffic light
+  addSpeedLimAt(tu, 0);
+  await new Promise(r =>  setTimeout(r, 1200));
+  // remove traffic light
+  removeSpeedLimit(101);
+  let id60 = addSpeedLimAt(tu, 120);
+  let d21_speed = 0.8 * getDetectorSpeed(detectors[2]);
+  let d22_speed = 0.8 * getDetectorSpeed(detectors[2]);
+  let idd1 = addSpeedLimAt(20, d21_speed);
+  let idd2 = addSpeedLimAt(200, d22_speed);
+
+  setInterval(() => {
+      d21_speed = Math.max(
+	lerp(d21_speed, getDetectorSpeed(detectors[2]), 5), 
+	20);
+      d22_speed = Math.max(
+	lerp(d22_speed, getDetectorSpeed(detectors[2]), 10), 
+	20);
+      removeSpeedLimit(idd1);
+      removeSpeedLimit(idd2);
+      idd1 = addSpeedLimAt(20, d21_speed);
+      idd2 = addSpeedLimAt(200, d22_speed);
+  }, 1000)
+}
