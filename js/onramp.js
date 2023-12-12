@@ -930,31 +930,69 @@ showInfo();//!!!! change to showInfoString() plus strings defined inline or as e
 
 var myRun=setInterval(main_loop, 1000/fps);
 
-
 function getDetectorSpeed(d) {
   let hs = d.historySpeed;
   return hs[hs.length - 1] * 3.6;
 }
 
+let invocationCounter = 0;
+const vehicleData = {};
+// get vehicle data
+setInterval(() => {
+  let maxTimer = 1000; // amount of time to get data
+  invocationCounter++;
+  if (invocationCounter==maxTimer - 1) {
+    console.log(`%c Finished saving data to vehicleData variable`, 'color: green;');
+    exportVehData();
+  }
+  if (invocationCounter >= maxTimer) return;
+ 
+  vehicleData[invocationCounter] = mainroad.veh.map((veh) => {
+    return {id: veh.id, u: veh.u, lane: veh.lane, speed: veh.speed};
+  });
+}, 1000/fps)
 
-async function simmulateJam() {
+function exportVehData() {
+  const filename = 'veh_data.json';
+  const jsonStr = JSON.stringify(vehicleData);
+
+  let element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+
+
+setTimeout(() => {
+  console.log("Starting Jam");
+  simulateJam();
+}, 5000);
+
+
+// tries to simulate a jam and undo it controlling the roads
+// velocity
+async function simulateJam() {
   let tu = 600;
   let d2_speed = getDetectorSpeed(detectors[2]);
 
   // add red traffic light
   addSpeedLimAt(tu, 0);
-  await new Promise(r =>  setTimeout(r, 1200));
+  await new Promise(r =>  setTimeout(r, 1000));
   // remove traffic light
   removeSpeedLimit(101);
   let id40 = addSpeedLimAt(20, 40);
-  //let id30 = addSpeedLimAt(100, 30);
   //let id2 = addSpeedLimAt(tu, 120);
-  let id41 = addSpeedLimAt(150, 40);
-  await new Promise(r =>  setTimeout(r, 5000));
-  await new Promise(r =>  setTimeout(r, 5000));
-  let id60 = addSpeedLimAt(tu, 120);
-  //removeSpeedLimit(id41);
-  //removeSpeedLimit(id40);
+  let id41 = addSpeedLimAt(150, 30);
+  let id60 = addSpeedLimAt(tu - 50, 120);
+  await new Promise(r =>  setTimeout(r, 60000));
+  removeSpeedLimit(id41);
+  removeSpeedLimit(id40);
 }
 
 
@@ -963,7 +1001,7 @@ function lerp(a, b, step=1) {
 }
 
 
-async function simmulateJam2() {
+async function simulateJam2() {
   let tu = 600;
 
   // add red traffic light
@@ -990,3 +1028,4 @@ async function simmulateJam2() {
       idd2 = addSpeedLimAt(200, d22_speed);
   }, 1000)
 }
+
